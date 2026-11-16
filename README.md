@@ -36,14 +36,14 @@ Keys: `name` (falls back to the site title), `phone`, `email`, `address`, `hours
 
 Every block opens on its own page in WordPress Playground, in your browser, with nothing to install:
 
-- All the blocks: https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/hamchowderr/anypress-blocks/main/demo/blueprint.json
-- One block: `https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/hamchowderr/anypress-blocks/main/demo/blueprints/<block>.json`, for example `carousel` or `before-after`
+- All the blocks: https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/otaku-solutions/anypress-blocks/main/demo/blueprint.json
+- One block: `https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/otaku-solutions/anypress-blocks/main/demo/blueprints/<block>.json`, for example `carousel` or `before-after`
 
 The demo uses the latest releases of AnyPress Blocks and the AnyPress theme, with Fluent Forms for the popup's signup form. `demo/build.php` makes the pages; it is not part of the plugin. Every file the Blueprints load comes from an address any site can read, so they also run on a copy of Playground without a download helper of its own; a new file in `demo/` needs its own `writeFile` step in each Blueprint.
 
 ## Install
 
-Download `anypress-blocks.zip` from the [latest release](https://github.com/hamchowderr/anypress-blocks/releases/latest), then in WordPress go to Plugins > Add New > Upload Plugin. Requires WordPress 6.8 and PHP 7.4 or later.
+Download `anypress-blocks.zip` from the [latest release](https://github.com/otaku-solutions/anypress-blocks/releases/latest), then in WordPress go to Plugins > Add New > Upload Plugin. Requires WordPress 6.8 and PHP 7.4 or later.
 
 ## Use the Popup
 
