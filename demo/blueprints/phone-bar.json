@@ -2,7 +2,7 @@
 	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
 	"meta": {
 		"title": "AnyPress Blocks demo: Call and book bar",
-		"author": "hamchowderr",
+		"author": "otaku-solutions",
 		"description": "The Call and book bar block from AnyPress Blocks, working on a page of the AnyPress theme, with the latest releases."
 	},
 	"landingPage": "/blocks/phone-bar/",
@@ -64,7 +64,7 @@
 			"path": "/wordpress/wp-content/anypress-blocks-demo/build.php",
 			"data": {
 				"resource": "url",
-				"url": "https://raw.githubusercontent.com/hamchowderr/anypress-blocks/main/demo/build.php"
+				"url": "https://raw.githubusercontent.com/otaku-solutions/anypress-blocks/main/demo/build.php"
 			},
 			"progress": {
 				"caption": "Writing the example pages"
@@ -75,7 +75,7 @@
 			"path": "/wordpress/wp-content/anypress-blocks-demo/path-before.jpg",
 			"data": {
 				"resource": "url",
-				"url": "https://raw.githubusercontent.com/hamchowderr/anypress-blocks/main/demo/path-before.jpg"
+				"url": "https://raw.githubusercontent.com/otaku-solutions/anypress-blocks/main/demo/path-before.jpg"
 			},
 			"progress": {
 				"caption": "Writing the example pages"
@@ -86,7 +86,7 @@
 			"path": "/wordpress/wp-content/anypress-blocks-demo/path-after.jpg",
 			"data": {
 				"resource": "url",
-				"url": "https://raw.githubusercontent.com/hamchowderr/anypress-blocks/main/demo/path-after.jpg"
+				"url": "https://raw.githubusercontent.com/otaku-solutions/anypress-blocks/main/demo/path-after.jpg"
 			},
 			"progress": {
 				"caption": "Writing the example pages"
@@ -108,7 +108,7 @@
 			"path": "/wordpress/wp-content/plugins/anypress-client-data/roles.json",
 			"data": {
 				"resource": "url",
-				"url": "https://raw.githubusercontent.com/hamchowderr/waas-provisioning-api/main/templates/anypress-store/roles.json"
+				"url": "https://raw.githubusercontent.com/otaku-solutions/anypress-api/main/templates/anypress-store/roles.json"
 			},
 			"progress": {
 				"caption": "Setting up wp-admin"

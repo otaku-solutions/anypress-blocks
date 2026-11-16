@@ -49,7 +49,7 @@ import { runCLI } from '@wp-playground/cli';
 const require = createRequire(import.meta.url);
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PLUGIN = resolve(HERE, '..');
-const THEME_ZIP = process.env.ANYPRESS_THEME_ZIP || 'https://github.com/hamchowderr/anypress-theme/releases/latest/download/anypress.zip';
+const THEME_ZIP = process.env.ANYPRESS_THEME_ZIP || 'https://github.com/otaku-solutions/anypress-theme/releases/latest/download/anypress.zip';
 const WP = process.env.PLAYGROUND_WP || '7.1.3';
 const PHP = process.env.PLAYGROUND_PHP || '8.3';
 const PORT = Number(process.env.PLAYGROUND_PORT || 9420);
