@@ -36,7 +36,9 @@
 //   - the age check covers the page until answered, ignores Escape, says sorry on "No" and remembers "Yes"
 //   - the copy button copies its text, says "Copied" on the button and to screen readers, then goes back; one without
 //     text prints nothing
-//   - a carousel set to fade shows one slide at a time in one place, and its arrows and dots fade between them
+//   - a carousel set to fade shows one slide at a time in one place, its arrows, dots and a phone swipe fade between
+//     them, and a sliding carousel inside it keeps sliding
+//   - a button-only copy button shows its text, selected, when the browser refuses to copy; copy buttons fit a phone
 //   - all of them stay valid in the editor
 //
 // Environment: ANYPRESS_THEME_ZIP (theme zip URL, default the latest AnyPress theme release), PLAYGROUND_WP, PLAYGROUND_PHP
@@ -167,8 +169,15 @@ const pages = {
         `<!-- wp:anypress/copy-button {"text":"WELCOME10","className":"is-code"} /-->`,
         `<!-- wp:anypress/copy-button {"text":"hello@springfield.example","label":"Copy email","copiedLabel":"Email copied","showText":false,"className":"is-email"} /-->`,
         `<!-- wp:anypress/copy-button /-->`,
-        `<!-- wp:anypress/carousel {"transition":"fade","perView":3,"label":"Cakes"} -->`,
+        `<!-- wp:anypress/carousel {"transition":"fade","perView":3,"label":"Cakes","className":"cakes"} -->`,
         ...['Lemon drizzle', 'Carrot cake', 'Black forest'].map((name) => `<!-- wp:paragraph -->\n<p>${name}</p>\n<!-- /wp:paragraph -->`),
+        `<!-- /wp:anypress/carousel -->`,
+        // A sliding carousel inside a fading one: the fade's rules must stay on the outer carousel's own slides.
+        `<!-- wp:anypress/carousel {"transition":"fade","label":"Shops","className":"nest"} -->`,
+        `<!-- wp:anypress/carousel {"perView":2,"dots":false,"label":"Cupcakes","className":"inner"} -->`,
+        ...['Vanilla', 'Chocolate', 'Red velvet'].map((name) => `<!-- wp:paragraph -->\n<p>${name}</p>\n<!-- /wp:paragraph -->`),
+        `<!-- /wp:anypress/carousel -->`,
+        `<!-- wp:paragraph -->\n<p>Second shop</p>\n<!-- /wp:paragraph -->`,
         `<!-- /wp:anypress/carousel -->`,
     ].join('\n\n'),
     age: `<!-- wp:anypress/age-check {"minAge":21} -->\n<!-- wp:heading -->\n<h2 class="wp-block-heading">Are you 21 or over?</h2>\n<!-- /wp:heading -->\n<!-- /wp:anypress/age-check -->\n\n` + filler,
@@ -338,28 +347,85 @@ try {
     await cbtab.waitForTimeout(300);
     check(await cbtab.evaluate(() => navigator.clipboard.readText()) === 'hello@springfield.example' && (await cbtab.locator('.is-email button').innerText()).trim() === 'Email copied',
         'copy button: a button-only copy button copies its email with its own words');
-    check(await cbtab.locator('.is-email .wp-block-anypress-copy-button__text').count() === 0, 'copy button: hides the text when asked to');
+    check(await cbtab.locator('.is-email .wp-block-anypress-copy-button__text').isHidden(), 'copy button: hides the text when asked to');
     const fade = () => cbtab.evaluate(() => {
-        const t = document.querySelector('.is-fade .wp-block-anypress-carousel__track');
+        const c = document.querySelector('.cakes');
+        const t = c.querySelector(':scope > .wp-block-anypress-carousel__track');
         const s = [...t.children];
         return { shown: s.map((x) => getComputedStyle(x).visibility === 'visible'), tops: [...new Set(s.map((x) => Math.round(x.getBoundingClientRect().top)))].length,
-            dots: document.querySelectorAll('.is-fade .wp-block-anypress-carousel__dot').length, prev: document.querySelector('.is-fade .wp-block-anypress-carousel__prev').disabled,
-            next: document.querySelector('.is-fade .wp-block-anypress-carousel__next').disabled, inert: s.map((x) => x.inert) };
+            dots: c.querySelectorAll('.wp-block-anypress-carousel__dot').length, prev: c.querySelector('.wp-block-anypress-carousel__prev').disabled,
+            next: c.querySelector('.wp-block-anypress-carousel__next').disabled, inert: s.map((x) => x.inert) };
     });
     let f = await fade();
     check(f.tops === 1 && f.shown.join() === 'true,false,false' && f.dots === 3, 'fading carousel: slides sit in one place and only the first shows, with a dot each', JSON.stringify(f));
     check(f.prev && !f.next && f.inert.join() === 'false,true,true', 'fading carousel: at the start the back arrow is off, and hidden slides are out of the tab order', JSON.stringify(f));
-    await cbtab.click('.is-fade .wp-block-anypress-carousel__next');
+    await cbtab.click('.cakes .wp-block-anypress-carousel__next');
     await cbtab.waitForTimeout(800);
     f = await fade();
     check(f.shown.join() === 'false,true,false' && !f.prev, 'fading carousel: the next arrow fades to the second slide', JSON.stringify(f));
-    await cbtab.click('.is-fade .wp-block-anypress-carousel__dot:last-child');
+    await cbtab.click('.cakes .wp-block-anypress-carousel__dot:last-child');
     await cbtab.waitForTimeout(800);
     f = await fade();
     check(f.shown.join() === 'false,false,true' && f.next, 'fading carousel: the last dot shows the last slide, where the next arrow turns off', JSON.stringify(f));
+    const nest = await cbtab.evaluate(() => {
+        const inner = document.querySelector('.nest .inner > .wp-block-anypress-carousel__track');
+        const outer = document.querySelector('.nest > .wp-block-anypress-carousel__track');
+        return { opacity: [...inner.children].map((x) => getComputedStyle(x).opacity).join(), overflow: getComputedStyle(inner).overflowX,
+            lefts: new Set([...inner.children].map((x) => Math.round(x.getBoundingClientRect().left))).size, outerShown: [...outer.children].map((x) => x.classList.contains('is-shown')).join(),
+            innerDots: document.querySelectorAll('.nest > .wp-block-anypress-carousel__nav .wp-block-anypress-carousel__dot').length };
+    });
+    check(nest.opacity === '1,1,1' && nest.overflow !== 'hidden' && nest.lefts > 1, 'fading carousel: a sliding carousel inside it keeps sliding, with all its slides showing', JSON.stringify(nest));
+    check(nest.outerShown === 'true,false' && nest.innerDots === 2, 'fading carousel: the one around it keeps its own slides and dots', JSON.stringify(nest));
     await cbtab.screenshot({ path: resolve(SHOTS, 'copy-and-fade-desktop.png') });
     check(cberrors.length === 0, 'copy button and fading carousel: no JavaScript errors', cberrors.join(' | '));
     await cbdesk.close();
+
+    // Where the browser won't copy, a button-only copy button shows its text, selected, to copy by hand.
+    const cbdeny = await browser.newContext({ viewport: { width: 1280, height: 860 } });
+    await cbdeny.addInitScript(() => {
+        Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new Error('Not allowed')) } });
+    });
+    const dtab = await cbdeny.newPage();
+    await dtab.goto(`${base}/popup-copy/`, { waitUntil: 'domcontentloaded' });
+    await dtab.waitForTimeout(500);
+    await dtab.click('.is-email button');
+    await dtab.waitForTimeout(300);
+    const denied = await dtab.evaluate(() => ({ selected: String(window.getSelection()), shown: !document.querySelector('.is-email .wp-block-anypress-copy-button__text').hidden,
+        copied: !document.querySelector('.is-email .wp-block-anypress-copy-button__copied').hidden }));
+    check(denied.shown && denied.selected === 'hello@springfield.example' && !denied.copied,
+        'copy button: when copying is refused, a button-only one shows its text selected, without saying "Copied"', JSON.stringify(denied));
+    await cbdeny.close();
+
+    // On a phone: the copy buttons fit, and a sideways swipe moves the fading carousel.
+    const cbphone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
+    const mtab = await cbphone.newPage();
+    const merrors = [];
+    mtab.on('pageerror', (e) => merrors.push(e.message));
+    await mtab.goto(`${base}/popup-copy/`, { waitUntil: 'domcontentloaded' });
+    await mtab.waitForTimeout(500);
+    const mfit = await mtab.evaluate(() => ({ scroll: document.documentElement.scrollWidth - innerWidth,
+        buttons: [...document.querySelectorAll('.wp-block-anypress-copy-button')].map((b) => { const r = b.getBoundingClientRect(); return { left: r.left, right: innerWidth - r.right, height: b.querySelector('button').getBoundingClientRect().height }; }) }));
+    check(mfit.scroll <= 0 && mfit.buttons.every((b) => b.left >= 0 && b.right >= 0 && b.height >= 44), 'phone: copy buttons fit the screen with full-size buttons', JSON.stringify(mfit));
+    const swipe = (from, to) => mtab.evaluate(([a, b]) => {
+        const t = document.querySelector('.cakes > .wp-block-anypress-carousel__track');
+        const touch = (x) => new Touch({ identifier: 1, target: t, clientX: x, clientY: 200 });
+        t.dispatchEvent(new TouchEvent('touchstart', { touches: [touch(a)], changedTouches: [touch(a)], bubbles: true }));
+        t.dispatchEvent(new TouchEvent('touchend', { touches: [], changedTouches: [touch(b)], bubbles: true }));
+    }, [from, to]);
+    const mshown = () => mtab.evaluate(() => [...document.querySelector('.cakes > .wp-block-anypress-carousel__track').children].map((x) => x.classList.contains('is-shown')).join());
+    await swipe(300, 100);
+    await mtab.waitForTimeout(400);
+    const afterLeft = await mshown();
+    await swipe(100, 300);
+    await mtab.waitForTimeout(400);
+    const afterRight = await mshown();
+    await swipe(200, 190);
+    await mtab.waitForTimeout(400);
+    check(afterLeft === 'false,true,false' && afterRight === 'true,false,false' && await mshown() === 'true,false,false',
+        'phone: a swipe left fades to the next slide, a swipe right back, and a small nudge does nothing', JSON.stringify({ afterLeft, afterRight }));
+    await mtab.screenshot({ path: resolve(SHOTS, 'copy-and-fade-phone.png'), fullPage: true });
+    check(merrors.length === 0, 'phone: copy buttons and fading carousel without JavaScript errors', merrors.join(' | '));
+    await cbphone.close();
 
     // Carousel, Counter and Map on a computer.
     const bdesk = await browser.newContext({ viewport: { width: 1280, height: 860 } });

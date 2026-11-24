@@ -5,10 +5,13 @@
 // keeps the shown slide's number in data-index, and a sideways swipe moves it.
 import { store, getContext, getElement } from '@wordpress/interactivity';
 
+// Where each fading track's swipe started, so a nested carousel's swipe never moves the one around it.
+const swipes = new WeakMap();
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Each carousel looks only at its own track and buttons, so one placed inside another keeps to itself.
 const parts = (ref) => {
 	const carousel = ref.closest('.wp-block-anypress-carousel');
-	return { carousel, track: carousel?.querySelector('.wp-block-anypress-carousel__track') };
+	return { carousel, track: carousel?.querySelector(':scope > .wp-block-anypress-carousel__track') };
 };
 const slides = (track) => Array.from(track.children);
 const fading = (track) => track.parentElement.classList.contains('is-fade');
@@ -49,9 +52,9 @@ const places = (track) => {
 
 function buildDots(carousel, track, dots) {
 	const count = places(track) < 2 ? 0 : places(track);
-	let holder = carousel.querySelector('.wp-block-anypress-carousel__dots');
+	let holder = carousel.querySelector(':scope > .wp-block-anypress-carousel__nav > .wp-block-anypress-carousel__dots');
 	if (count === (holder ? holder.children.length : 0)) return;
-	let nav = carousel.querySelector('.wp-block-anypress-carousel__nav');
+	let nav = carousel.querySelector(':scope > .wp-block-anypress-carousel__nav');
 	if (!nav) {
 		nav = document.createElement('div');
 		nav.className = 'wp-block-anypress-carousel__nav';
@@ -73,11 +76,11 @@ function buildDots(carousel, track, dots) {
 }
 
 function update(carousel, track) {
-	const dots = Array.from(carousel.querySelectorAll('.wp-block-anypress-carousel__dot'));
+	const dots = Array.from(carousel.querySelectorAll(':scope > .wp-block-anypress-carousel__nav .wp-block-anypress-carousel__dot'));
 	const index = atEnd(track) ? dots.length - 1 : current(track);
 	dots.forEach((dot, i) => dot.setAttribute('aria-current', i === index ? 'true' : 'false'));
-	const prev = carousel.querySelector('.wp-block-anypress-carousel__prev');
-	const next = carousel.querySelector('.wp-block-anypress-carousel__next');
+	const prev = carousel.querySelector(':scope > .wp-block-anypress-carousel__nav > .wp-block-anypress-carousel__prev');
+	const next = carousel.querySelector(':scope > .wp-block-anypress-carousel__nav > .wp-block-anypress-carousel__next');
 	if (prev) prev.disabled = atStart(track);
 	if (next) next.disabled = atEnd(track);
 	carousel.classList.toggle('is-static', fading(track) ? slides(track).length < 2 : track.scrollWidth <= track.clientWidth + 2);
@@ -105,6 +108,18 @@ store('anypress/carousel', {
 		resume() {
 			getContext().paused = false;
 		},
+		swipeStart(event) {
+			const track = getElement().ref;
+			if (!fading(track) || event.target.closest('.wp-block-anypress-carousel__track') !== track) return;
+			swipes.set(track, event.touches[0].clientX);
+		},
+		swipeEnd(event) {
+			const track = getElement().ref;
+			if (!swipes.has(track)) return;
+			const dx = event.changedTouches[0].clientX - swipes.get(track);
+			swipes.delete(track);
+			if (Math.abs(dx) > 40) go(track, current(track) + (dx < 0 ? 1 : -1));
+		},
 		moved() {
 			const { carousel, track } = parts(getElement().ref);
 			requestAnimationFrame(() => update(carousel, track));
@@ -130,16 +145,6 @@ store('anypress/carousel', {
 			if (context.fade) {
 				carousel.classList.add('is-ready');
 				show(track, 0);
-				let startX = null;
-				const start = (e) => { startX = e.touches[0].clientX; };
-				const end = (e) => {
-					const dx = e.changedTouches[0].clientX - (startX ?? e.changedTouches[0].clientX);
-					startX = null;
-					if (Math.abs(dx) > 40) go(track, current(track) + (dx < 0 ? 1 : -1));
-				};
-				track.addEventListener('touchstart', start, { passive: true });
-				track.addEventListener('touchend', end, { passive: true });
-				cleanups.push(() => { track.removeEventListener('touchstart', start); track.removeEventListener('touchend', end); });
 			}
 			if (context.dots) buildDots(carousel, track, context.slideLabel);
 			update(carousel, track);

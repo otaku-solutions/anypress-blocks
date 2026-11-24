@@ -35,7 +35,8 @@
 	white-space: nowrap;
 }
 .wp-block-anypress-copy-button__button svg { flex: none; }
-.wp-block-anypress-copy-button__button [hidden] { display: none; }
+.wp-block-anypress-copy-button__button [hidden],
+.wp-block-anypress-copy-button__text[hidden] { display: none; }
 
 .wp-block-anypress-copy-button .screen-reader-text {
 	position: absolute;

@@ -7,6 +7,8 @@ const timers = new WeakMap();
 const selectText = (ref) => {
 	const text = ref.closest('.wp-block-anypress-copy-button')?.querySelector('.wp-block-anypress-copy-button__text');
 	if (!text) return;
+	// A button-only block keeps its text hidden; show it, so there is something to select and copy by hand.
+	text.hidden = false;
 	const range = document.createRange();
 	range.selectNodeContents(text);
 	const selection = window.getSelection();

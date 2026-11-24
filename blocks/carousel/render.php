@@ -50,7 +50,7 @@ $anypress_blocks_carousel_wrapper = get_block_wrapper_attributes(
 );
 ?>
 <div <?php echo $anypress_blocks_carousel_wrapper; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by get_block_wrapper_attributes(). ?>>
-	<div class="wp-block-anypress-carousel__track" tabindex="0" data-wp-on-async--scroll="actions.moved" data-wp-on--keydown="actions.keys">
+	<div class="wp-block-anypress-carousel__track" tabindex="0" data-wp-on-async--scroll="actions.moved" data-wp-on--keydown="actions.keys" data-wp-on-async--touchstart="actions.swipeStart" data-wp-on-async--touchend="actions.swipeEnd">
 		<?php echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- rendered inner blocks. ?>
 	</div>
 	<?php if ( $anypress_blocks_carousel_arrows ) : ?>
