@@ -2,7 +2,7 @@
 /**
  * Carousel block: puts the saved slides in a track that scrolls sideways, with arrow buttons.
  * Without JavaScript the track still scrolls by swipe or scroll bar; view.js (Interactivity API store anypress/carousel)
- * adds the arrows, dots and autoplay.
+ * adds the arrows, dots and autoplay. With the fade transition one slide shows at a time and view.js fades between them.
  *
  * @package AnyPress_Blocks
  *
@@ -13,7 +13,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$anypress_blocks_carousel_per_view = min( 4, max( 1, (int) ( $attributes['perView'] ?? 3 ) ) );
+$anypress_blocks_carousel_fade     = 'fade' === ( $attributes['transition'] ?? 'slide' );
+$anypress_blocks_carousel_per_view = $anypress_blocks_carousel_fade ? 1 : min( 4, max( 1, (int) ( $attributes['perView'] ?? 3 ) ) );
 $anypress_blocks_carousel_autoplay = min( 30, max( 0, (int) ( $attributes['autoplay'] ?? 0 ) ) );
 $anypress_blocks_carousel_label    = '' !== ( $attributes['label'] ?? '' ) ? $attributes['label'] : __( 'Carousel', 'anypress-blocks' );
 $anypress_blocks_carousel_arrows   = ! empty( $attributes['arrows'] ?? true );
@@ -21,7 +22,7 @@ $anypress_blocks_carousel_dots     = ! empty( $attributes['dots'] ?? true );
 
 $anypress_blocks_carousel_wrapper = get_block_wrapper_attributes(
 	array(
-		'class'                => 'has-' . $anypress_blocks_carousel_per_view . '-per-view',
+		'class'                => 'has-' . $anypress_blocks_carousel_per_view . '-per-view' . ( $anypress_blocks_carousel_fade ? ' is-fade' : '' ),
 		'style'                => '--anypress-carousel-per-view:' . $anypress_blocks_carousel_per_view,
 		'role'                 => 'region',
 		'aria-roledescription' => __( 'carousel', 'anypress-blocks' ),
@@ -30,6 +31,7 @@ $anypress_blocks_carousel_wrapper = get_block_wrapper_attributes(
 		'data-wp-context'      => wp_json_encode(
 			array(
 				'autoplay'   => $anypress_blocks_carousel_autoplay,
+				'fade'       => $anypress_blocks_carousel_fade,
 				'dots'       => $anypress_blocks_carousel_dots,
 				'paused'     => false,
 				'slideRole'  => __( 'slide', 'anypress-blocks' ),

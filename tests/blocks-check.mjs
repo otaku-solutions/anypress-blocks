@@ -24,7 +24,7 @@
 //   - bound headings, paragraphs and buttons show the saved name, address and phone; an unset detail keeps the block's text
 //   - the editor lists the details, shows them in bound blocks, and editing one saves it to the site settings
 //
-// Location Finder, Before and After, Countdown, Star Rating, Notice Bar, Phone Bar and Age Check blocks:
+// Location Finder, Before and After, Countdown, Star Rating, Notice Bar, Phone Bar, Age Check and Copy Button blocks:
 //   - the finder lists every location with directions, filters as the visitor types, sorts nearest first after
 //     "Near me", and moves the map to the location picked; on a phone the map sits above the list
 //   - before and after: the handle moves with a drag and with the arrow keys, and the "after" photo is cut there
@@ -34,6 +34,9 @@
 //   - the phone bar sits at the bottom of a phone screen with full-size buttons, calls Site details' number, and is
 //     hidden on a computer
 //   - the age check covers the page until answered, ignores Escape, says sorry on "No" and remembers "Yes"
+//   - the copy button copies its text, says "Copied" on the button and to screen readers, then goes back; one without
+//     text prints nothing
+//   - a carousel set to fade shows one slide at a time in one place, and its arrows and dots fade between them
 //   - all of them stay valid in the editor
 //
 // Environment: ANYPRESS_THEME_ZIP (theme zip URL, default the latest AnyPress theme release), PLAYGROUND_WP, PLAYGROUND_PHP
@@ -160,6 +163,14 @@ const pages = {
         ] })} /-->`,
     ].join('\n\n'),
     bar: `<!-- wp:paragraph -->\n<p>Bottom of the page.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:anypress/phone-bar {"bookUrl":"/book/","bookLabel":"Book a cake"} /-->\n\n` + filler,
+    copy: [
+        `<!-- wp:anypress/copy-button {"text":"WELCOME10","className":"is-code"} /-->`,
+        `<!-- wp:anypress/copy-button {"text":"hello@springfield.example","label":"Copy email","copiedLabel":"Email copied","showText":false,"className":"is-email"} /-->`,
+        `<!-- wp:anypress/copy-button /-->`,
+        `<!-- wp:anypress/carousel {"transition":"fade","perView":3,"label":"Cakes"} -->`,
+        ...['Lemon drizzle', 'Carrot cake', 'Black forest'].map((name) => `<!-- wp:paragraph -->\n<p>${name}</p>\n<!-- /wp:paragraph -->`),
+        `<!-- /wp:anypress/carousel -->`,
+    ].join('\n\n'),
     age: `<!-- wp:anypress/age-check {"minAge":21} -->\n<!-- wp:heading -->\n<h2 class="wp-block-heading">Are you 21 or over?</h2>\n<!-- /wp:heading -->\n<!-- /wp:anypress/age-check -->\n\n` + filler,
 };
 await php(`update_option('anypress_site_details', ['phone' => '(217) 555-0142', 'address' => "12 Main Street\\nSpringfield"]); echo 1;`);
@@ -173,7 +184,7 @@ const ids = await php(`
 
 if (SERVE) {
     // Auto-login sends cookie-less requests round in circles, so serving skips the checks.
-    console.log(`Serving ${base} (admin / password): /popup-delay/, /popup-click/, /popup-scroll/, /popup-blocks/, /popup-more/, /popup-bar/, /popup-age/. Ctrl+C to stop.`);
+    console.log(`Serving ${base} (admin / password): /popup-delay/, /popup-click/, /popup-scroll/, /popup-blocks/, /popup-more/, /popup-bar/, /popup-age/, /popup-copy/. Ctrl+C to stop.`);
     await new Promise(() => {});
 }
 
@@ -305,6 +316,50 @@ try {
     check(!fit.covered, 'phone: the close button does not cover the heading');
     await ptab.screenshot({ path: resolve(SHOTS, 'popup-phone.png') });
     await phone.close();
+
+    // Copy Button, and a carousel that fades.
+    const cbdesk = await browser.newContext({ viewport: { width: 1280, height: 860 }, permissions: ['clipboard-read', 'clipboard-write'] });
+    const cbtab = await cbdesk.newPage();
+    const cberrors = [];
+    cbtab.on('pageerror', (e) => cberrors.push(e.message));
+    await cbtab.goto(`${base}/popup-copy/`, { waitUntil: 'domcontentloaded' });
+    await cbtab.waitForTimeout(500);
+    check(await cbtab.locator('.wp-block-anypress-copy-button').count() === 2, 'copy button: a block with no text prints nothing');
+    check(await cbtab.locator('.is-code .wp-block-anypress-copy-button__text').textContent() === 'WELCOME10', 'copy button: shows the code beside the button');
+    await cbtab.click('.is-code button');
+    await cbtab.waitForTimeout(300);
+    const copied = await cbtab.evaluate(() => navigator.clipboard.readText());
+    const said = await cbtab.evaluate(() => ({ button: document.querySelector('.is-code button').innerText.trim(), status: document.querySelector('.is-code [role=status]').textContent }));
+    check(copied === 'WELCOME10', 'copy button: a click copies the code', copied);
+    check(said.button === 'Copied' && said.status === 'Copied', 'copy button: says "Copied", on the button and to screen readers', JSON.stringify(said));
+    await cbtab.waitForTimeout(2300);
+    check((await cbtab.locator('.is-code button').innerText()).trim() === 'Copy', 'copy button: goes back to "Copy" after two seconds');
+    await cbtab.click('.is-email button');
+    await cbtab.waitForTimeout(300);
+    check(await cbtab.evaluate(() => navigator.clipboard.readText()) === 'hello@springfield.example' && (await cbtab.locator('.is-email button').innerText()).trim() === 'Email copied',
+        'copy button: a button-only copy button copies its email with its own words');
+    check(await cbtab.locator('.is-email .wp-block-anypress-copy-button__text').count() === 0, 'copy button: hides the text when asked to');
+    const fade = () => cbtab.evaluate(() => {
+        const t = document.querySelector('.is-fade .wp-block-anypress-carousel__track');
+        const s = [...t.children];
+        return { shown: s.map((x) => getComputedStyle(x).visibility === 'visible'), tops: [...new Set(s.map((x) => Math.round(x.getBoundingClientRect().top)))].length,
+            dots: document.querySelectorAll('.is-fade .wp-block-anypress-carousel__dot').length, prev: document.querySelector('.is-fade .wp-block-anypress-carousel__prev').disabled,
+            next: document.querySelector('.is-fade .wp-block-anypress-carousel__next').disabled, inert: s.map((x) => x.inert) };
+    });
+    let f = await fade();
+    check(f.tops === 1 && f.shown.join() === 'true,false,false' && f.dots === 3, 'fading carousel: slides sit in one place and only the first shows, with a dot each', JSON.stringify(f));
+    check(f.prev && !f.next && f.inert.join() === 'false,true,true', 'fading carousel: at the start the back arrow is off, and hidden slides are out of the tab order', JSON.stringify(f));
+    await cbtab.click('.is-fade .wp-block-anypress-carousel__next');
+    await cbtab.waitForTimeout(800);
+    f = await fade();
+    check(f.shown.join() === 'false,true,false' && !f.prev, 'fading carousel: the next arrow fades to the second slide', JSON.stringify(f));
+    await cbtab.click('.is-fade .wp-block-anypress-carousel__dot:last-child');
+    await cbtab.waitForTimeout(800);
+    f = await fade();
+    check(f.shown.join() === 'false,false,true' && f.next, 'fading carousel: the last dot shows the last slide, where the next arrow turns off', JSON.stringify(f));
+    await cbtab.screenshot({ path: resolve(SHOTS, 'copy-and-fade-desktop.png') });
+    check(cberrors.length === 0, 'copy button and fading carousel: no JavaScript errors', cberrors.join(' | '));
+    await cbdesk.close();
 
     // Carousel, Counter and Map on a computer.
     const bdesk = await browser.newContext({ viewport: { width: 1280, height: 860 } });
@@ -595,7 +650,7 @@ try {
     });
     check(freshCar === 3, 'a new carousel starts with three slides to fill in', String(freshCar));
 
-    for (const slug of ['more', 'bar', 'age']) {
+    for (const slug of ['more', 'bar', 'age', 'copy']) {
         await etab.goto(`${base}/wp-admin/post.php?post=${ids[slug]}&action=edit`);
         await etab.waitForFunction(() => window.wp?.data?.select('core/block-editor')?.getBlocks().length > 0, null, { timeout: 60000 });
         await etab.waitForTimeout(1500);

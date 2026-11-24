@@ -199,10 +199,10 @@ return array (
     '$schema' => 'https://schemas.wp.org/trunk/block.json',
     'apiVersion' => 3,
     'name' => 'anypress/carousel',
-    'version' => '0.3.0',
+    'version' => '0.5.0',
     'title' => 'Carousel',
     'category' => 'design',
-    'description' => 'Slides that scroll sideways, with arrows and dots: reviews, projects, team members or photos. Each block inside is one slide.',
+    'description' => 'Slides that scroll sideways or fade from one to the next, with arrows and dots: reviews, projects, team members or photos. Each block inside is one slide.',
     'keywords' => 
     array (
       0 => 'carousel',
@@ -211,6 +211,7 @@ return array (
       3 => 'reviews',
       4 => 'testimonials',
       5 => 'gallery',
+      6 => 'fade',
     ),
     'textdomain' => 'anypress-blocks',
     'attributes' => 
@@ -224,6 +225,16 @@ return array (
       array (
         'type' => 'number',
         'default' => 0,
+      ),
+      'transition' => 
+      array (
+        'type' => 'string',
+        'enum' => 
+        array (
+          0 => 'slide',
+          1 => 'fade',
+        ),
+        'default' => 'slide',
       ),
       'arrows' => 
       array (
@@ -314,6 +325,82 @@ return array (
     ),
     'editorScript' => 'file:./index.js',
     'editorStyle' => 'file:./editor.css',
+    'style' => 'file:./style.css',
+    'viewScriptModule' => 'file:./view.js',
+    'render' => 'file:./render.php',
+  ),
+  'copy-button' => 
+  array (
+    '$schema' => 'https://schemas.wp.org/trunk/block.json',
+    'apiVersion' => 3,
+    'name' => 'anypress/copy-button',
+    'version' => '0.5.0',
+    'title' => 'Copy Button',
+    'category' => 'widgets',
+    'description' => 'A code, email address or other text with a button that copies it in one tap: coupon codes, gift card codes, account numbers, an address to paste into a map.',
+    'keywords' => 
+    array (
+      0 => 'copy',
+      1 => 'clipboard',
+      2 => 'coupon',
+      3 => 'discount code',
+      4 => 'promo code',
+      5 => 'email',
+    ),
+    'textdomain' => 'anypress-blocks',
+    'attributes' => 
+    array (
+      'text' => 
+      array (
+        'type' => 'string',
+        'default' => '',
+      ),
+      'label' => 
+      array (
+        'type' => 'string',
+        'default' => '',
+      ),
+      'copiedLabel' => 
+      array (
+        'type' => 'string',
+        'default' => '',
+      ),
+      'showText' => 
+      array (
+        'type' => 'boolean',
+        'default' => true,
+      ),
+    ),
+    'supports' => 
+    array (
+      'html' => false,
+      'color' => 
+      array (
+        'text' => true,
+        'background' => true,
+      ),
+      'typography' => 
+      array (
+        'fontSize' => true,
+      ),
+      'spacing' => 
+      array (
+        'margin' => 
+        array (
+          0 => 'top',
+          1 => 'bottom',
+        ),
+      ),
+      'interactivity' => true,
+    ),
+    'example' => 
+    array (
+      'attributes' => 
+      array (
+        'text' => 'WELCOME10',
+      ),
+    ),
+    'editorScript' => 'file:./index.js',
     'style' => 'file:./style.css',
     'viewScriptModule' => 'file:./view.js',
     'render' => 'file:./render.php',

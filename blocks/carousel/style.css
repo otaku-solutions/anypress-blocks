@@ -97,3 +97,25 @@
 	.wp-block-anypress-carousel__track { scroll-behavior: smooth; }
 }
 .wp-block-anypress-carousel.is-static .wp-block-anypress-carousel__nav { display: none; }
+
+/* Fade transition: once view.js is running (is-ready), the slides stack in one place and only the shown one is
+   visible. Without JavaScript a fading carousel scrolls one slide at a time like any other. */
+.wp-block-anypress-carousel.is-fade.is-ready .wp-block-anypress-carousel__track {
+	grid-auto-flow: row;
+	grid-template-columns: 100%;
+	grid-auto-columns: auto;
+	overflow: hidden;
+	scroll-snap-type: none;
+}
+.wp-block-anypress-carousel.is-fade.is-ready .wp-block-anypress-carousel__track > * {
+	grid-area: 1 / 1;
+	opacity: 0;
+	visibility: hidden;
+}
+.wp-block-anypress-carousel.is-fade.is-ready .wp-block-anypress-carousel__track > .is-shown {
+	opacity: 1;
+	visibility: visible;
+}
+@media (prefers-reduced-motion: no-preference) {
+	.wp-block-anypress-carousel.is-fade.is-ready .wp-block-anypress-carousel__track > * { transition: opacity 0.6s ease, visibility 0.6s; }
+}

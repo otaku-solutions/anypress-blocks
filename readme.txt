@@ -4,7 +4,7 @@ Tags: popup, carousel, store locator, before and after, countdown
 Requires at least: 6.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 0.4.3
+Stable tag: 0.5.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -33,6 +33,7 @@ Slides that scroll sideways: reviews, projects, team members or photos. Each blo
 * Shows one to four slides at a time on a computer; phones show one slide and the edge of the next, so visitors know to swipe.
 * Arrows, dots, swiping and the keyboard's arrow keys all move it.
 * Can move on by itself every few seconds, and stops while a visitor hovers, touches or tabs into it, or prefers less motion.
+* Or fades from one slide to the next instead, one at a time, for a hero photo or a single quote.
 
 **Counter**
 
@@ -69,6 +70,10 @@ Call and Book buttons fixed to the bottom of the screen, so the main action is a
 **Age Check**
 
 Asks visitors to confirm their age before they see the site, for shops selling alcohol, tobacco or other age-restricted goods, and remembers a "Yes". "No" can send them to another page. It is a polite check, not proof of age.
+
+**Copy Button**
+
+A code, email address or account number with a button that copies it in one tap: discount codes, gift card codes, an address to paste into a map. The button says "Copied" and tells screen readers too. You can show the text beside the button or only the button, and choose its words.
 
 **Tabs and accordions**
 
@@ -112,6 +117,10 @@ The Map and Location Finder blocks use OpenStreetMap. Nothing is sent until a pa
 * "Near me" in the Location Finder uses the browser's own location feature. The position stays on the visitor's device and is not sent anywhere.
 
 == Changelog ==
+
+= 0.5.0 =
+* New: Copy Button block. Text with a button that copies it, for discount codes, gift card codes or an email address.
+* New: Carousel can fade from one slide to the next instead of sliding, one slide at a time.
 
 = 0.4.3 =
 * Every PHP file, the blocks manifest included, now stops when opened directly, as wordpress.org asks.

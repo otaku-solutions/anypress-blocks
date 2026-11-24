@@ -4,7 +4,7 @@
 (function (wp) {
 	const { registerBlockType } = wp.blocks;
 	const { useBlockProps, useInnerBlocksProps, InnerBlocks, InspectorControls } = wp.blockEditor;
-	const { PanelBody, RangeControl, ToggleControl, TextControl } = wp.components;
+	const { PanelBody, RangeControl, SelectControl, ToggleControl, TextControl } = wp.components;
 	const { createElement: el, Fragment } = wp.element;
 	const { __, sprintf } = wp.i18n;
 
@@ -24,12 +24,13 @@
 
 	registerBlockType('anypress/carousel', {
 		edit({ attributes: a, setAttributes }) {
-			const summary = a.autoplay
-				? sprintf(__('Carousel: %1$d slides at a time, moves every %2$d seconds', 'anypress-blocks'), a.perView, a.autoplay)
-				: sprintf(__('Carousel: %d slides at a time', 'anypress-blocks'), a.perView);
+			const fade = a.transition === 'fade';
+			const shown = fade ? 1 : a.perView;
+			let summary = fade ? __('Carousel: fades from one slide to the next', 'anypress-blocks') : sprintf(__('Carousel: %d slides at a time', 'anypress-blocks'), a.perView);
+			if (a.autoplay) summary += sprintf(__(', moves every %d seconds', 'anypress-blocks'), a.autoplay);
 			const blockProps = useBlockProps({
 				className: 'is-editor-preview',
-				style: { '--anypress-carousel-per-view': a.perView },
+				style: { '--anypress-carousel-per-view': fade ? Math.min(3, a.perView) : shown },
 				'data-carousel-summary': summary,
 			});
 			const innerBlocksProps = useInnerBlocksProps(blockProps, { template: TEMPLATE });
@@ -43,7 +44,18 @@
 					el(
 						PanelBody,
 						{ title: __('Slides', 'anypress-blocks') },
-						el(RangeControl, {
+						el(SelectControl, {
+							label: __('Move between slides by', 'anypress-blocks'),
+							value: a.transition,
+							options: [
+								{ label: __('Sliding sideways', 'anypress-blocks'), value: 'slide' },
+								{ label: __('Fading, one slide at a time', 'anypress-blocks'), value: 'fade' },
+							],
+							onChange: (transition) => setAttributes({ transition }),
+							__next40pxDefaultSize: true,
+							__nextHasNoMarginBottom: true,
+						}),
+						fade ? null : el(RangeControl, {
 							label: __('Slides shown at a time', 'anypress-blocks'),
 							help: __('On a computer. Phones show one slide and the edge of the next.', 'anypress-blocks'),
 							value: a.perView,

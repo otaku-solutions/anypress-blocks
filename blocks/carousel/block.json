@@ -2,17 +2,18 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "anypress/carousel",
-	"version": "0.3.0",
+	"version": "0.5.0",
 	"title": "Carousel",
 	"category": "design",
-	"description": "Slides that scroll sideways, with arrows and dots: reviews, projects, team members or photos. Each block inside is one slide.",
+	"description": "Slides that scroll sideways or fade from one to the next, with arrows and dots: reviews, projects, team members or photos. Each block inside is one slide.",
 	"keywords": [
 		"carousel",
 		"slider",
 		"slideshow",
 		"reviews",
 		"testimonials",
-		"gallery"
+		"gallery",
+		"fade"
 	],
 	"textdomain": "anypress-blocks",
 	"attributes": {
@@ -23,6 +24,14 @@
 		"autoplay": {
 			"type": "number",
 			"default": 0
+		},
+		"transition": {
+			"type": "string",
+			"enum": [
+				"slide",
+				"fade"
+			],
+			"default": "slide"
 		},
 		"arrows": {
 			"type": "boolean",

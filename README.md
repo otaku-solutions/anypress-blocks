@@ -1,13 +1,13 @@
 # AnyPress Blocks
 
-Interactive blocks for any WordPress block theme: Popup, Carousel, Counter, Map, Location Finder, Before and After, Countdown, Star Rating, Notice Bar, Phone Bar and Age Check. AnyPress stores have it installed, and any WordPress site can use it.
+Interactive blocks for any WordPress block theme: Popup, Carousel, Counter, Map, Location Finder, Before and After, Countdown, Star Rating, Notice Bar, Phone Bar, Age Check and Copy Button. AnyPress stores have it installed, and any WordPress site can use it.
 
 ## Blocks
 
 | Block | What it does |
 |---|---|
 | **Popup** (`anypress/popup`) | A box that opens over the page after a few seconds, when the visitor scrolls, when they are about to leave, or from any link to `#its-id`. Holds any blocks, including a form. Closes with its button, Escape or a click outside, and stays closed for the number of days you choose. |
-| **Carousel** (`anypress/carousel`) | Slides that scroll sideways: reviews, projects, team or photos. Each block inside is one slide. One to four at a time on a computer, one and the edge of the next on a phone. Arrows, dots, swipe, arrow keys and optional autoplay that pauses on hover, touch, focus and reduced motion. |
+| **Carousel** (`anypress/carousel`) | Slides that scroll sideways: reviews, projects, team or photos. Each block inside is one slide. One to four at a time on a computer, one and the edge of the next on a phone. Arrows, dots, swipe, arrow keys and optional autoplay that pauses on hover, touch, focus and reduced motion. Can fade between slides instead, one at a time. |
 | **Counter** (`anypress/counter`) | A number that counts up when it scrolls into view, with text before or after it. The page holds the final number, so it reads right without JavaScript. |
 | **Map** (`anypress/map`) | An OpenStreetMap map of an address with a pin and a "Get directions" link. No API key. Can wait to load until the visitor asks. |
 | **Location Finder** (`anypress/location-finder`) | A list of locations beside a map. Search by town, street or zip code, or "Near me" to sort nearest first (the browser asks; nothing is sent anywhere). Picking one moves the map to it. Phone, hours, directions and a page link per location. |
@@ -17,6 +17,7 @@ Interactive blocks for any WordPress block theme: Popup, Carousel, Counter, Map,
 | **Notice Bar** (`anypress/notice-bar`) | One short message in a bar. Visitors can close it; it stays closed for the days you choose, or until the message changes. |
 | **Phone Bar** (`anypress/phone-bar`) | Call and Book buttons fixed to the bottom of the screen, on phones only or everywhere. Uses the Site details phone number by default. No JavaScript. |
 | **Age Check** (`anypress/age-check`) | A modal asking visitors to confirm their age, remembered for the days you choose. A polite check, not proof of age. |
+| **Copy Button** (`anypress/copy-button`) | Text with a button that copies it in one tap: discount codes, gift card codes, an email address. Says "Copied" on the button and to screen readers; falls back to selecting the text where the browser won't copy. |
 
 Tabs and accordions: use WordPress's own Tabs and Accordion blocks (WordPress 7.1). Two tabs make a monthly and yearly price switch.
 

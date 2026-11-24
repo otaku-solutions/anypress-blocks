@@ -1,0 +1,62 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "anypress/copy-button",
+	"version": "0.5.0",
+	"title": "Copy Button",
+	"category": "widgets",
+	"description": "A code, email address or other text with a button that copies it in one tap: coupon codes, gift card codes, account numbers, an address to paste into a map.",
+	"keywords": [
+		"copy",
+		"clipboard",
+		"coupon",
+		"discount code",
+		"promo code",
+		"email"
+	],
+	"textdomain": "anypress-blocks",
+	"attributes": {
+		"text": {
+			"type": "string",
+			"default": ""
+		},
+		"label": {
+			"type": "string",
+			"default": ""
+		},
+		"copiedLabel": {
+			"type": "string",
+			"default": ""
+		},
+		"showText": {
+			"type": "boolean",
+			"default": true
+		}
+	},
+	"supports": {
+		"html": false,
+		"color": {
+			"text": true,
+			"background": true
+		},
+		"typography": {
+			"fontSize": true
+		},
+		"spacing": {
+			"margin": [
+				"top",
+				"bottom"
+			]
+		},
+		"interactivity": true
+	},
+	"example": {
+		"attributes": {
+			"text": "WELCOME10"
+		}
+	},
+	"editorScript": "file:./index.js",
+	"style": "file:./style.css",
+	"viewScriptModule": "file:./view.js",
+	"render": "file:./render.php"
+}
