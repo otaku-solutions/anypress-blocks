@@ -111,14 +111,17 @@ store('anypress/carousel', {
 		swipeStart(event) {
 			const track = getElement().ref;
 			if (!fading(track) || event.target.closest('.wp-block-anypress-carousel__track') !== track) return;
-			swipes.set(track, event.touches[0].clientX);
+			swipes.set(track, { x: event.touches[0].clientX, y: event.touches[0].clientY });
 		},
 		swipeEnd(event) {
 			const track = getElement().ref;
 			if (!swipes.has(track)) return;
-			const dx = event.changedTouches[0].clientX - swipes.get(track);
+			const start = swipes.get(track);
+			const dx = event.changedTouches[0].clientX - start.x;
+			const dy = event.changedTouches[0].clientY - start.y;
 			swipes.delete(track);
-			if (Math.abs(dx) > 40) go(track, current(track) + (dx < 0 ? 1 : -1));
+			// Only a sideways swipe moves the slide; scrolling down the page past it doesn't.
+			if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go(track, current(track) + (dx < 0 ? 1 : -1));
 		},
 		moved() {
 			const { carousel, track } = parts(getElement().ref);

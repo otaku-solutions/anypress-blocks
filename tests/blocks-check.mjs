@@ -414,23 +414,30 @@ try {
     }
     check(mcopies[0].text === 'WELCOME10' && mcopies[0].said === 'Copied' && mcopies[1].text === 'hello@springfield.example' && mcopies[1].said === 'Email copied',
         'phone: a tap on each copy button copies its text and says so', JSON.stringify(mcopies));
-    const swipe = (from, to) => mtab.evaluate(([a, b]) => {
-        const t = document.querySelector('.cakes > .wp-block-anypress-carousel__track');
-        const touch = (x) => new Touch({ identifier: 1, target: t, clientX: x, clientY: 200 });
-        t.dispatchEvent(new TouchEvent('touchstart', { touches: [touch(a)], changedTouches: [touch(a)], bubbles: true }));
-        t.dispatchEvent(new TouchEvent('touchend', { touches: [], changedTouches: [touch(b)], bubbles: true }));
-    }, [from, to]);
-    const mshown = () => mtab.evaluate(() => [...document.querySelector('.cakes > .wp-block-anypress-carousel__track').children].map((x) => x.classList.contains('is-shown')).join());
-    await swipe(300, 100);
-    await mtab.waitForTimeout(400);
+    // Real touches from the browser (not made-up events), and the slide that's actually visible, not just its class.
+    const cdp = await cbphone.newCDPSession(mtab);
+    const track = '.cakes > .wp-block-anypress-carousel__track';
+    await mtab.locator(track).scrollIntoViewIfNeeded();
+    const swipe = async (dx, dy = 0) => {
+        const r = await mtab.evaluate((sel) => { const b = document.querySelector(sel).getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + Math.min(b.height / 2, 120) }; }, track);
+        const at = (x, y) => [{ x, y, id: 1 }];
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: at(r.x, r.y) });
+        for (let i = 1; i <= 5; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: at(r.x + (dx * i) / 5, r.y + (dy * i) / 5) });
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        await mtab.waitForTimeout(900);
+    };
+    const mshown = () => mtab.evaluate((sel) => [...document.querySelector(sel).children].map((x) => { const c = getComputedStyle(x); return c.visibility === 'visible' && Number(c.opacity) > 0.9; }).join(), track);
+    await swipe(-200);
     const afterLeft = await mshown();
-    await swipe(100, 300);
-    await mtab.waitForTimeout(400);
+    await swipe(200);
     const afterRight = await mshown();
-    await swipe(200, 190);
-    await mtab.waitForTimeout(400);
-    check(afterLeft === 'false,true,false' && afterRight === 'true,false,false' && await mshown() === 'true,false,false',
-        'phone: a swipe left fades to the next slide, a swipe right back, and a small nudge does nothing', JSON.stringify({ afterLeft, afterRight }));
+    await swipe(-10);
+    const afterNudge = await mshown();
+    await swipe(-55, 250);
+    const afterScroll = await mshown();
+    check(afterLeft === 'false,true,false' && afterRight === 'true,false,false' && afterNudge === 'true,false,false',
+        'phone: a real swipe left shows the next slide, a swipe right shows the first again, and a small nudge does nothing', JSON.stringify({ afterLeft, afterRight, afterNudge }));
+    check(afterScroll === 'true,false,false', 'phone: scrolling down past a fading carousel (55px across, 250px down) keeps its slide', afterScroll);
     await mtab.screenshot({ path: resolve(SHOTS, 'copy-and-fade-phone.png'), fullPage: true });
     check(merrors.length === 0, 'phone: copy buttons and fading carousel without JavaScript errors', merrors.join(' | '));
     await cbphone.close();
