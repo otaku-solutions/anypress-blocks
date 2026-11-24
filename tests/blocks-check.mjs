@@ -397,7 +397,7 @@ try {
     await cbdeny.close();
 
     // On a phone: the copy buttons fit, and a sideways swipe moves the fading carousel.
-    const cbphone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
+    const cbphone = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 1, permissions: ['clipboard-read', 'clipboard-write'] });
     const mtab = await cbphone.newPage();
     const merrors = [];
     mtab.on('pageerror', (e) => merrors.push(e.message));
@@ -406,6 +406,14 @@ try {
     const mfit = await mtab.evaluate(() => ({ scroll: document.documentElement.scrollWidth - innerWidth,
         buttons: [...document.querySelectorAll('.wp-block-anypress-copy-button')].map((b) => { const r = b.getBoundingClientRect(); return { left: r.left, right: innerWidth - r.right, height: b.querySelector('button').getBoundingClientRect().height }; }) }));
     check(mfit.scroll <= 0 && mfit.buttons.every((b) => b.left >= 0 && b.right >= 0 && b.height >= 44), 'phone: copy buttons fit the screen with full-size buttons', JSON.stringify(mfit));
+    const mcopies = [];
+    for (const name of ['is-code', 'is-email']) {
+        await mtab.tap(`.${name} button`);
+        await mtab.waitForTimeout(300);
+        mcopies.push(await mtab.evaluate(async (n) => ({ text: await navigator.clipboard.readText(), said: document.querySelector(`.${n} [role=status]`).textContent }), name));
+    }
+    check(mcopies[0].text === 'WELCOME10' && mcopies[0].said === 'Copied' && mcopies[1].text === 'hello@springfield.example' && mcopies[1].said === 'Email copied',
+        'phone: a tap on each copy button copies its text and says so', JSON.stringify(mcopies));
     const swipe = (from, to) => mtab.evaluate(([a, b]) => {
         const t = document.querySelector('.cakes > .wp-block-anypress-carousel__track');
         const touch = (x) => new Touch({ identifier: 1, target: t, clientX: x, clientY: 200 });
